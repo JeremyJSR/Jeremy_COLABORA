@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Usuarios</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Lista de Usuarios</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Correo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                // Conexión a la base de datos
+                $conexion = mysqli_connect("localhost", "root", "", "ejegit");
+
+                if (!$conexion) {
+                    die("ERROR: No se pudo conectar a la base de datos.<br>\n");
+                }
+
+                $query = "SELECT nombre, apellido, correo FROM usuarios";
+                $result = mysqli_query($conexion, $query);
+
+                if ($result) {
+                    while ($fila = mysqli_fetch_assoc($result)) {
+                        echo "<tr>";
+                        echo "<td>" . $fila['nombre'] . "</td>";
+                        echo "<td>" . $fila['apellido'] . "</td>";
+                        echo "<td>" . $fila['correo'] . "</td>";
+                        echo "</tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='3'>No se pudieron obtener los datos.</td></tr>";
+                }
+
+                mysqli_close($conexion);
+                ?>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

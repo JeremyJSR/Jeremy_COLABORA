@@ -8,57 +8,50 @@
 
 <?php
 if (isset($_POST["usu"]) && isset($_POST["clave"])) {
-    $conexion = mysqli_connect("localhost", "root", "");
+    $conexion = mysqli_connect("localhost", "root", "", "ejegit");
 
     if (!$conexion) {
         echo "ERROR: Imposible establecer conexión con la base de datos.<br>\n";
     } else {
         // Sanitizamos los datos de entrada
-        $usuario = $_POST["usu"];
+        $correo = $_POST["usu"];
         $clave = $_POST["clave"];
 
-        $db = mysqli_select_db($conexion, "ejemplo");
+        // Usamos una consulta preparada para evitar SQL Injection
+        $query = "SELECT nombre, apellido, correo FROM usuarios WHERE correo = ? AND contraseña = MD5(?)";
 
-        if (!$db) {
-            echo "ERROR: Imposible seleccionar la base de datos.<br>\n";
-        } else {
-            // Usamos una consulta preparada para evitar SQL Injection
-            $query = "SELECT * FROM acceso WHERE login = ? AND clave = md5(?)";
+        if ($stmt = mysqli_prepare($conexion, $query)) {
+            // Vinculamos los parámetros de entrada a la consulta
+            mysqli_stmt_bind_param($stmt, "ss", $correo, $clave);
 
-            if ($stmt = mysqli_prepare($conexion, $query)) {
-                // Vinculamos los parámetros de entrada a la consulta
-                mysqli_stmt_bind_param($stmt, "ss", $usuario, $clave);
+            // Ejecutamos la consulta
+            mysqli_stmt_execute($stmt);
 
-                // Ejecutamos la consulta
-                mysqli_stmt_execute($stmt);
+            // Obtenemos el resultado de la consulta
+            $resul = mysqli_stmt_get_result($stmt);
 
-                // Obtenemos el resultado de la consulta
-                $resul = mysqli_stmt_get_result($stmt);
-
-                if (!$resul) {
-                    echo "ERROR: Imposible realizar consulta.<br>\n";
-                } else {
-                    echo "Consulta realizada satisfactoriamente!<br>\n";
-                    echo "Se encontraron " . mysqli_num_rows($resul) . " registros.<br>";
-
-                    if (mysqli_num_rows($resul) == 0) {
-                        echo "<br><b>Usuario y/o clave incorrectos!.<br></b>\n";
-                    } else {
-                        echo "<br>REGISTROS ENCONTRADOS:<br>\n";
-                        while ($fila = mysqli_fetch_row($resul)) {
-                            echo "<b>USUARIO:</b> $fila[0] <b>CLAVE:</b> $fila[1] <b>Nombre:</b> $fila[2] <b>HAS CONSEGUIDO ENTRAR EN LA PÁGINA WEB!</b><br>";
-                        }
-                    }
-                }
-
-                // Cerramos la declaración
-                mysqli_stmt_close($stmt);
+            if (!$resul) {
+                echo "ERROR: Imposible realizar consulta.<br>\n";
             } else {
-                echo "ERROR: No se pudo preparar la consulta.<br>\n";
+                if (mysqli_num_rows($resul) == 0) {
+                    echo "<br><b>Usuario y/o clave incorrectos!<br></b>\n";
+                } else {
+                    // Redirigimos a la página de usuarios
+                    header("Location: usuarios.html");
+                    exit(); // Asegura que el script se detenga después de redirigir
+                }
             }
 
-            mysqli_close($conexion);
+            // Cerramos la declaración
+            mysqli_stmt_close($stmt);
+        } else {
+            echo "ERROR: No se pudo preparar la consulta.<br>\n";
         }
+
+        mysqli_close($conexion);
     }
 }
 ?>
+
+</body>
+</html>
